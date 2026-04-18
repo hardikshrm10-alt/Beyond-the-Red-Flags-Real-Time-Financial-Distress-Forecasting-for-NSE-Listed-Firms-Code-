@@ -1,32 +1,3 @@
-"""
-Altman Z*-Score — Full ML Pipeline (with XGBoost)
-=================================================
-INPUT  : X_train_z.csv, X_test_z.csv, y_train_z.csv, y_test_z.csv
-         (min-max scaled, Z-Score input cols removed, stratified split done)
-
-STEPS:
-  1.  SMOTE+ENN      — manual implementation (training set ONLY)
-  2.  RFECV          — LR, DT, RF, SVM (on SMOTE-resampled train)
-  3.  Experiment 1   — Predictive Modeling
-                       LR, DT, RF, SVM, XGBoost — GridSearchCV tuning
-                       Train on SMOTE set, evaluate on original test set
-  4.  Experiment 2   — RFECV Models
-                       Same 5 algorithms re-trained on RFECV-selected features
-  5.  Experiment 3   — CART Bootstrapping (1:1 to 10:1 non-dist:dist ratios)
-                       Uses ORIGINAL (non-SMOTE) training data
-  6.  ANN Standalone — MLPClassifier matching paper architecture
-                       3 hidden layers, ReLU, Adam, batch 35, 100 epochs
-  7.  Feature Importance — RF + XGBoost top 10 predictors
-
-KEY DESIGN DECISIONS (matching Lokanan & Ramzan 2024):
-  - SMOTE+ENN applied to TRAINING SET ONLY (test set is never modified)
-  - GridSearchCV scoring = "f1" (handles class imbalance better than accuracy)
-  - Train accuracy reported on SMOTE-resampled set (matches paper methodology)
-  - Test accuracy reported on original, unmodified test set (honest evaluation)
-  - CART bootstrapping uses original train data (not SMOTE) to test model
-    robustness under different class imbalance ratios
-"""
-
 import warnings
 warnings.filterwarnings("ignore")
 
