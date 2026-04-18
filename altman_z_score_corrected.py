@@ -1,79 +1,3 @@
-"""
-Financial Distress Prediction — NSE Dataset  (Altman Z-Score)
-=============================================================
-CORRECTED VERSION — Fixes applied vs original script:
-
-  FIX 1 — WRONG FORMULA (most critical fix):
-    OLD : Original 1968 formula
-          Z = 1.2·X1 + 1.4·X2 + 3.3·X3 + 0.6·X4 + 1.0·X5
-          Thresholds: Distressed < 1.81, Grey 1.81–2.99, Healthy > 2.99
-          → Built for US PUBLIC MANUFACTURING firms in 1968
-
-    NEW : Revised 1983 formula (Altman Z'-Score)
-          Z* = 3.25 + 6.56·X1 + 3.26·X2 + 6.72·X3 + 1.05·X4
-          Thresholds: Distressed < 1.10, Grey 1.10–2.60, Healthy > 2.60
-          → Built for NON-MANUFACTURING and EMERGING MARKET firms
-
-    WHY : NSE-listed firms are a mix of manufacturing and non-
-          manufacturing companies in an emerging market. The reference
-          paper this project follows (Mudel & Jhunjhunwala 2023)
-          explicitly uses the revised formula with revised thresholds.
-          Using the original formula on this dataset is a category
-          mismatch that produces invalid distress classifications.
-
-  FIX 2 — X1 denominator:
-    OLD : Tangible Asset Value  (acceptable proxy but note limitation)
-    NEW : Tangible Asset Value  (kept — it is the closest available
-          proxy to Total Assets in this dataset)
-    WHY : The dataset does not have a direct Total Assets column.
-          Tangible Asset Value excludes intangibles but is the best
-          available approximation. The difference is noted as a
-          limitation where intangible-heavy firms (IT, pharma) may
-          have understated Total Assets.
-
-  FIX 3 — X2 proxy:
-    OLD : Return On Assets  (= Net Income/TA — current year only)
-    NEW : Return On Assets  (kept as best available proxy)
-    WHY : The dataset has no Retained Earnings column. ROA is the
-          closest available metric. The key limitation is that ROA
-          measures current-year profitability while Retained Earnings
-          captures cumulative financial history. This is explicitly
-          acknowledged as a data limitation in the methodology.
-
-  FIX 4 — X4: No change needed (formula was mathematically correct)
-    PB × (1 - DR) / DR = (MktCap/BV) × BV/TL = MktCap/TL ✓
-
-  FIX 5 — Winsorize Z-Score components at 1st–99th percentile:
-    OLD : Raw components fed into formula → X4 reaches 161 million
-          for near-zero-debt firms, making Z-Score meaningless.
-    NEW : Each component clipped at its 1st and 99th percentile
-          before the formula is applied.
-    WHY : Same reasoning as Beneish fix — raw Indian ratio data
-          contains extreme outliers the formula cannot handle.
-
-  FIX 6 — Thresholds corrected to match revised formula:
-    OLD : 1.81 / 2.99 (original 1968 thresholds)
-    NEW : 1.10 / 2.60 (revised 1983 thresholds)
-
-PIPELINE ORDER (label first, clean features second):
-  PHASE 1 — LABELLING from raw data
-    1.  Load data
-    2.  Drop fully empty rows
-    3.  Compute 4 Z-Score components from raw values
-    4.  Winsorize components at 1st–99th percentile
-    5.  Compute Revised Altman Z*-Score
-    6.  Assign three-zone label, exclude grey zone
-    7.  Lock label
-
-  PHASE 2 — FEATURE CLEANING (label locked — never touched again)
-    8.  Outlier removal on feature columns (Z-score ±3)
-    9.  KNN imputation on feature columns (≤40% missing)
-        Drop features with >40% missing
-    10. Multicollinearity removal (Pearson r ≥ 0.70)
-    11. Min-Max scaling
-    12. Summary + save
-"""
-
 import pandas as pd
 import numpy as np
 from sklearn.impute import KNNImputer
@@ -91,7 +15,7 @@ print("=" * 65)
 print("STEP 1: LOADING DATA")
 print("=" * 65)
 
-DATA_PATH = r"C:\Users\hardi\Downloads\nsestockhistoricalratios.csv"   # ← update path if needed
+DATA_PATH = r"C:\Users\hardi\Downloads\nsestockhistoricalratios.csv"   
 
 df = pd.read_csv(DATA_PATH, low_memory=False)
 
